@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- History Panel -->
+    <div class="history-tab">
+        <div class="history-toggle" onclick="toggleHistory()">
+            History ▼
+            <span class="latest-crashes">
+                <span class="crash-item">1.24x</span>
+                <span class="crash-item">2.15x</span>
+                <span class="crash-item">1.88x</span>
+            </span>
+        </div>
+        <div class="history-panel">
+            <div class="history-content">
+                <div class="history-stats">
+                    <div class="stat-box">
+                        <h3>Highest Crash</h3>
+                        <span id="highestCrash">0.00x</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Games Played</h3>
+                        <span id="gamesPlayed">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Average Crash</h3>
+                        <span id="averageCrash">0.00x</span>
+                    </div>
+                </div>
+                <div class="history-list" id="fullHistory"></div>
+                <div class="settings-section">
+                    <button onclick="resetGameData()" class="reset-button">Reset Game Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div class="game-container">
+        <div class="balance">Credits: <span id="credits">1000.00</span></div>
+        
+        <div class="graph-container">
+            <div id="multiplier-display">1.00x</div>
+            <canvas id="gameCanvas"></canvas>
+            <div id="plane" class="plane">
+                <img src="./images/plane.svg" alt="plane">
+            </div>
+        </div>
+
+        <div class="betting-controls">
+            <div class="bet-amount-container">
+                <button class="bet-adjust-btn" onclick="adjustBet(-10)">-</button>
+                <input type="text" 
+                       id="betAmount" 
+                       value="10" 
+                       readonly
+                       inputmode="none">
+                <button class="bet-adjust-btn" onclick="adjustBet(10)">+</button>
+            </div>
+            <div class="action-buttons">
+                <button id="betButton" class="main-btn" onclick="placeBet()">BET</button>
+                <button id="cashoutButton" class="main-btn cashout-btn" onclick="cashOut()" disabled>CASH OUT</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
