@@ -46,26 +46,33 @@
         <div class="balance">Credits: <span id="credits">1000.00</span></div>
         
         <div class="graph-container">
-            <div id="multiplier-display">1.00x</div>
             <canvas id="gameCanvas"></canvas>
+            <div id="multiplier-display">1.00x</div>
             <div id="plane" class="plane">
-                <img src="./images/plane.svg" alt="plane">
+                <img src="plane.png" alt="plane">
             </div>
         </div>
 
-        <div class="betting-controls">
-            <div class="bet-amount-container">
-                <button class="bet-adjust-btn" onclick="adjustBet(-10)">-</button>
-                <input type="text" 
-                       id="betAmount" 
-                       value="10" 
-                       readonly
-                       inputmode="none">
-                <button class="bet-adjust-btn" onclick="adjustBet(10)">+</button>
-            </div>
-            <div class="action-buttons">
-                <button id="betButton" class="main-btn" onclick="placeBet()">BET</button>
-                <button id="cashoutButton" class="main-btn cashout-btn" onclick="cashOut()" disabled>CASH OUT</button>
+        <div class="controls-container">
+            <div class="betting-controls">
+                <div class="bet-amount-container">
+                    <button class="bet-adjust-btn" onclick="adjustBet(-10)">-</button>
+                    <input type="text" 
+                           id="betAmount" 
+                           value="10" 
+                           readonly
+                           inputmode="none">
+                    <button class="bet-adjust-btn" onclick="adjustBet(10)">+</button>
+                </div>
+                <div class="action-buttons">
+                    <button id="betButton" class="main-btn" onclick="placeBet()">BET</button>
+                    <div class="cashout-container">
+                        <button id="cashoutButton" class="main-btn cashout-btn" onclick="cashOut()" disabled>
+                            CASH OUT
+                        </button>
+                        <div id="cashoutAmount" class="cashout-amount">0.00</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

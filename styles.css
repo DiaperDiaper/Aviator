@@ -55,6 +55,9 @@ body {
     max-width: 800px;
     margin: 60px auto 20px;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .balance {
@@ -64,8 +67,10 @@ body {
 }
 
 .graph-container {
+    position: relative;
     background-color: transparent;
     border-radius: 10px;
+    height: 300px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -138,6 +143,13 @@ body {
     width: 100%;
 }
 
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    align-items: flex-start;
+}
+
 .bet-adjust-btn {
     width: 50px;
     height: 50px;
@@ -147,9 +159,10 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background-color: #2a2a2a;
+    background-color: #3a3a3a;
     border: 2px solid #4CAF50;
     color: #4CAF50;
+    cursor: pointer;
     transition: all 0.2s ease;
 }
 
@@ -158,54 +171,27 @@ body {
     color: white;
 }
 
-.bet-adjust-btn:active {
-    transform: scale(0.95);
-}
-
-#betAmount {
-    width: 120px;
-    height: 50px;
-    font-size: 24px;
-    text-align: center;
-    background-color: #2a2a2a;
-    border: 2px solid #4CAF50;
-    color: white;
-    border-radius: 8px;
-    padding: 0 10px;
-    margin: 0;
-    cursor: default;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-/* Remove spinner buttons from number input */
-#betAmount::-webkit-inner-spin-button, 
-#betAmount::-webkit-outer-spin-button { 
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-#betAmount[type=number] {
-    -moz-appearance: textfield;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-}
-
 .main-btn {
-    flex: 1;
-    height: 60px;
-    font-size: 20px;
+    width: 100%;
+    height: 50px;
+    font-size: 18px;
     font-weight: bold;
+    border: none;
     border-radius: 8px;
+    cursor: pointer;
     transition: all 0.2s ease;
+    background-color: #4CAF50;
+    color: white;
 }
 
-.main-btn:active {
-    transform: scale(0.98);
+.main-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.main-btn:disabled {
+    background-color: #666666;
+    cursor: not-allowed;
 }
 
 .cashout-btn {
@@ -216,10 +202,30 @@ body {
     background-color: #f57c00;
 }
 
-/* Media queries for mobile devices */
+#betAmount {
+    width: 120px;
+    height: 50px;
+    font-size: 24px;
+    text-align: center;
+    background-color: #3a3a3a;
+    border: 2px solid #4CAF50;
+    color: white;
+    border-radius: 8px;
+    padding: 0 10px;
+    margin: 0;
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Mobile responsiveness */
 @media (max-width: 480px) {
+    .game-container {
+        padding: 10px;
+    }
+
     .betting-controls {
-        padding: 0 10px;
+        padding: 0 5px;
     }
 
     .bet-adjust-btn {
@@ -234,8 +240,8 @@ body {
     }
 
     .main-btn {
-        height: 50px;
-        font-size: 18px;
+        height: 45px;
+        font-size: 16px;
     }
 }
 
@@ -440,4 +446,37 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1;
+}
+
+.controls-container {
+    width: 100%;
+    padding: 10px;
+    background-color: #2a2a2a;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Add these styles for the cashout display */
+.cashout-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.cashout-amount {
+    text-align: center;
+    color: #4CAF50;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: rgba(74, 185, 80, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cashout-amount.active {
+    opacity: 1;
 }

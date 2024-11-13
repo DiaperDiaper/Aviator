@@ -7,6 +7,8 @@ let gameInterval;
 let plane;
 let crashPoint = 0;
 let hasGameEnded = false;
+let canvas, ctx;
+let backgroundOffset = 0;
 
 // Add these constants at the top of the file
 const STORAGE_KEYS = {
@@ -96,17 +98,27 @@ function placeBet() {
     hasGameEnded = false;
     updateCredits(-currentBetAmount);
     
-    // Enable cashout and disable bet button
     document.getElementById('betButton').disabled = true;
     document.getElementById('cashoutButton').disabled = false;
+    
+    // Reset cashout amount display
+    const cashoutAmount = document.getElementById('cashoutAmount');
+    cashoutAmount.classList.remove('active');
     
     currentGameMultiplier = 1.00;
     const crashPoint = generateRandomMultiplier();
     
     const multiplierDisplay = document.getElementById('multiplier-display');
     const plane = document.getElementById('plane');
+    
+    // Reset plane position and show it
+    plane.style.transform = 'translate(0, 0) rotate(0deg)';
     plane.style.display = 'block';
     plane.classList.remove('crashed');
+    
+    backgroundOffset = 0;
+    let phase = 'takeoff';
+    let phaseProgress = 0;
     
     gameInterval = setInterval(() => {
         if (hasGameEnded) return;
@@ -114,11 +126,52 @@ function placeBet() {
         currentGameMultiplier += 0.01;
         multiplierDisplay.textContent = `${currentGameMultiplier.toFixed(2)}x`;
         
+        // Update cashout amount
+        updateCashoutAmount(currentGameMultiplier);
+        
+        // Update current multiplier in history
+        updateCurrentMultiplier(currentGameMultiplier);
+        
+        phaseProgress += 0.02;
+        let x, y, angle;
+        
+        if (phase === 'takeoff' && phaseProgress <= 1) {
+            // Takeoff phase
+            x = phaseProgress * 40;
+            y = Math.pow(phaseProgress * 2.5, 2) * 30;
+            angle = Math.min(phaseProgress * 45, 35);
+            
+            // Slower background movement during takeoff
+            backgroundOffset += 2;
+            
+            if (phaseProgress >= 1) {
+                phase = 'climb';
+                phaseProgress = 0;
+            }
+        } else {
+            // Climbing phase
+            const climbProgress = Math.min(phaseProgress, 1);
+            x = 40 + (climbProgress * 160);
+            y = 80 + (climbProgress * 120);
+            angle = Math.max(35 - (climbProgress * 25), 10);
+            
+            // Add slight wave motion
+            const waveAmplitude = 5;
+            const waveFrequency = 3;
+            y += Math.sin(phaseProgress * waveFrequency * Math.PI) * waveAmplitude;
+            
+            // Faster background movement during climb
+            backgroundOffset += 3;
+        }
+        
+        // Draw background with current offset
+        drawBackground(backgroundOffset);
+        
         // Update plane position
-        const progress = (currentGameMultiplier - 1) / (crashPoint - 1);
-        const x = progress * 100;
-        const y = Math.pow(progress * 1.5, 2) * 70;
-        plane.style.transform = `translate(${x}%, ${-y}px)`;
+        plane.style.transform = `
+            translate(${x}%, ${-y}px) 
+            rotate(${angle}deg)
+        `;
         
         if (currentGameMultiplier >= crashPoint) {
             crashGame();
@@ -131,11 +184,17 @@ function crashGame() {
     
     hasGameEnded = true;
     const plane = document.getElementById('plane');
+    
+    // Get current position
+    const currentTransform = plane.style.transform.split('translate');
+    const currentPosition = currentTransform[1].split('rotate')[0];
+    
+    // Add dramatic crash sequence
+    plane.style.transition = 'transform 0.5s cubic-bezier(.36,.07,.19,.97)';
+    plane.style.transform = `translate${currentPosition} rotate(160deg)`;
     plane.classList.add('crashed');
     
-    // Show crash message
     showMessage(`CRASHED @ ${currentGameMultiplier.toFixed(2)}x`, 'crash');
-    
     endGame(false);
 }
 
@@ -143,19 +202,29 @@ function endGame(cashoutSuccess) {
     clearInterval(gameInterval);
     isBetting = false;
     
-    // Reset buttons
     document.getElementById('betButton').disabled = false;
     document.getElementById('cashoutButton').disabled = true;
     
-    // Add to history
+    // Hide cashout amount
+    const cashoutAmount = document.getElementById('cashoutAmount');
+    cashoutAmount.classList.remove('active');
+    
+    // Remove current multiplier from history
+    const currentMultiplier = document.getElementById('currentMultiplier');
+    if (currentMultiplier) {
+        currentMultiplier.remove();
+    }
+    
     addToHistory(parseFloat(currentGameMultiplier.toFixed(2)));
     
-    // Hide plane after delay
+    // Reset background and plane after delay
     setTimeout(() => {
         const plane = document.getElementById('plane');
         plane.style.display = 'none';
         plane.style.transform = 'translate(0, 0)';
         document.getElementById('multiplier-display').textContent = '1.00x';
+        backgroundOffset = 0;
+        drawBackground(0);
     }, 2000);
 }
 
@@ -181,6 +250,11 @@ function cashOut() {
     hasGameEnded = true;
     const winnings = Math.floor(currentBetAmount * currentGameMultiplier);
     updateCredits(winnings);
+    
+    // Show final cashout amount briefly
+    const cashoutAmount = document.getElementById('cashoutAmount');
+    cashoutAmount.style.color = '#4CAF50';
+    cashoutAmount.textContent = `+${winnings}`;
     
     // Show win message
     showMessage(`CASHED OUT ${currentGameMultiplier.toFixed(2)}x (${winnings} credits)`, 'success');
@@ -236,4 +310,127 @@ document.addEventListener('DOMContentLoaded', () => {
     betInput.addEventListener('focus', (e) => {
         e.target.blur();
     });
+});
+
+// Add crash effects
+function addCrashEffects(plane) {
+    // Create explosion effect
+    const explosion = document.createElement('div');
+    explosion.className = 'explosion';
+    plane.appendChild(explosion);
+    
+    // Create smoke particles
+    for (let i = 0; i < 5; i++) {
+        const smoke = document.createElement('div');
+        smoke.className = 'smoke';
+        smoke.style.animationDelay = `${i * 0.1}s`;
+        plane.appendChild(smoke);
+    }
+}
+
+// Add this function to initialize the canvas
+function initCanvas() {
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    
+    // Set canvas size
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+}
+
+// Add this function to draw the background with lighter colors
+function drawBackground(offset) {
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw sky gradient with lighter colors
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, height);
+    skyGradient.addColorStop(0, '#2c3e50');  // Lighter blue-gray
+    skyGradient.addColorStop(1, '#3498db');  // Soft blue
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw ground with perspective (lighter color)
+    const groundY = height - 40;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(width, groundY);
+    ctx.strokeStyle = '#95a5a6';  // Lighter gray
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Draw grid lines with lighter color
+    const gridSize = 50;
+    const numLines = Math.ceil(width / gridSize) + 1;
+    
+    ctx.strokeStyle = 'rgba(236, 240, 241, 0.3)';  // Very light gray with transparency
+    ctx.lineWidth = 1;
+    
+    // Vertical lines
+    for (let i = 0; i < numLines; i++) {
+        const x = (i * gridSize - offset % gridSize);
+        ctx.beginPath();
+        ctx.moveTo(x, groundY);
+        ctx.lineTo(x - width * 0.5, height);
+        ctx.stroke();
+    }
+    
+    // Draw runway when plane is taking off
+    if (offset < width * 0.2) {
+        ctx.fillStyle = '#bdc3c7';  // Light gray for runway
+        ctx.fillRect(0, groundY - 2, width * 0.2 - offset, 4);
+    }
+}
+
+// Add this function to update the current multiplier in history
+function updateCurrentMultiplier(multiplier) {
+    const historyToggle = document.querySelector('.history-toggle');
+    const latestCrashes = document.querySelector('.latest-crashes');
+    
+    // Update or create current multiplier element
+    let currentMultiplier = document.getElementById('currentMultiplier');
+    if (!currentMultiplier) {
+        currentMultiplier = document.createElement('span');
+        currentMultiplier.id = 'currentMultiplier';
+        currentMultiplier.className = 'current-multiplier';
+        latestCrashes.insertBefore(currentMultiplier, latestCrashes.firstChild);
+    }
+    
+    // Update the multiplier value and color
+    currentMultiplier.textContent = `${multiplier.toFixed(2)}x`;
+    currentMultiplier.style.backgroundColor = getMultiplierColor(multiplier);
+}
+
+// Add this function to update the cashout amount
+function updateCashoutAmount(multiplier) {
+    const cashoutAmount = document.getElementById('cashoutAmount');
+    const amount = (currentBetAmount * multiplier).toFixed(2);
+    cashoutAmount.textContent = `${amount}`;
+    
+    if (multiplier > 1) {
+        cashoutAmount.classList.add('active');
+        // Change color based on profit
+        if (multiplier >= 2) {
+            cashoutAmount.style.color = '#4CAF50'; // Green for good profit
+        } else {
+            cashoutAmount.style.color = '#FFA726'; // Orange for small profit
+        }
+    } else {
+        cashoutAmount.classList.remove('active');
+    }
+}
+
+// Initialize canvas when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initCanvas();
+    drawBackground(0);
+    // ... other initialization code ...
 });
